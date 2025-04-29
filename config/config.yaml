@@ -1,12 +1,14 @@
-POSTGRES:
-  POSTGRES_HOST: "localhost"
-  POSTGRES_PORT: 5430
-  POSTGRES_USER: "user"
-  POSTGRES_PASS: "secret"
-  POSTGRES_DB: "postgres_db"
-  POSTGRES_MAX_CON: 10
-  POSTGRES_MIN_CON: 5
 
-GRPCPOST: 50051
-
-PGURL: "postgresql://${POSTGRES_USER}:${POSTGRES_PASS}@${POSTGRES_HOST}:${POSTGRES_PORT}/${POSTGRES_DB}?sslmode=disable"
+listen: ":8040"
+lb:
+  Alg:
+  backends:
+    - localhost:9001
+    - localhost:9002
+    - localhost:9003
+rate:
+  capacity: 100
+  rps: 10
+health:
+  interval: 5s
+  timeout:  2s

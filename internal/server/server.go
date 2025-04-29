@@ -2,45 +2,56 @@ package server
 
 import (
 	"context"
+	"net/http"
+	"net/url"
+	"strings"
+	"time"
+
 	"github.com/1rd0/TestCloud-/config"
+	"github.com/1rd0/TestCloud-/internal/service/backend"
 	"github.com/1rd0/TestCloud-/internal/service/balancer"
 	"github.com/1rd0/TestCloud-/internal/service/health"
-
 	"github.com/1rd0/TestCloud-/internal/service/proxy"
 
 	"go.uber.org/zap"
-
-	"time"
-
-	"net/http"
 )
 
 func Run(ctx context.Context) error {
-	cfg, err := config.New("config/config.yaml")
-	if err != nil {
-
-	}
+	cfg, _ := config.New("config/config.yaml")
 
 	log, err := zap.NewProduction()
 	if err != nil {
-
+		panic(err)
 	}
-	rr, err := balancer.NewRR(cfg.LB.Backends) // round-robin
-	if err != nil {
-
+	backs := make([]*backend.Backend, 0, len(cfg.LB.Backends))
+	for _, raw := range cfg.LB.Backends {
+		if !strings.Contains(raw, "://") {
+			raw = "http://" + raw
+		}
+		u, err := url.Parse(raw)
+		if err != nil {
+			return err
+		}
+		backs = append(backs, backend.New(u))
 	}
-	health.Start(ctx, cfg.LB.Backends, 5*time.Second, log)
-	handler := proxy.New(rr)
+
+	// choose algorithm
+	var bal balancer.Balancer
+	bal = balancer.NewRR(backs)
+
+	// health-check
+	health.Start(ctx, backs, 5*time.Second, 2*time.Second, log)
+
+	// HTTP-handler
+	h := proxy.New(bal.Next)
+
 	srv := &http.Server{
-		Addr:    cfg.Listen,
-		Handler: handler,
+		Addr:    cfg.Listen, // ":8080"
+		Handler: h,
 	}
 
 	log.Info("LB listening", zap.String("addr", cfg.Listen))
-	go func() {
-		<-ctx.Done()
-		_ = srv.Shutdown(context.Background())
-	}()
+	go func() { <-ctx.Done(); _ = srv.Shutdown(context.Background()) }()
 
 	return srv.ListenAndServe()
 }

@@ -2,31 +2,46 @@ package health
 
 import (
 	"context"
-	"net"
+	"net/http"
+	"net/url"
 	"time"
 
+	"github.com/1rd0/TestCloud-/internal/service/backend"
 	"go.uber.org/zap"
 )
 
-func Start(ctx context.Context, addrs []string, interval time.Duration, log *zap.Logger) {
+func Start(ctx context.Context, backs []*backend.Backend, interval, timeout time.Duration, log *zap.Logger) {
+	client := &http.Client{Timeout: timeout}
 	ticker := time.NewTicker(interval)
+
 	go func() {
+		defer ticker.Stop()
 		for {
 			select {
 			case <-ctx.Done():
-				ticker.Stop()
 				return
 			case <-ticker.C:
-				for _, a := range addrs {
-					conn, err := net.DialTimeout("tcp", a, 2*time.Second)
-					if err != nil {
-						log.Warn("backend down", zap.String("addr", a), zap.Error(err))
-						continue
-					}
-					 
-					_ = conn.Close()
+				for _, b := range backs {
+					go func(b *backend.Backend) {
+						alive := ping(client, b.URL)
+						if alive != b.IsAlive() {
+							log.Info("backend state changed",
+								zap.String("url", b.URL.String()),
+								zap.Bool("alive", alive))
+						}
+						b.SetAlive(alive)
+					}(b)
 				}
 			}
 		}
 	}()
+}
+
+func ping(c *http.Client, u *url.URL) bool {
+	resp, err := c.Get(u.String() + "/health")
+	if err != nil {
+		return false
+	}
+	_ = resp.Body.Close()
+	return resp.StatusCode == http.StatusOK
 }

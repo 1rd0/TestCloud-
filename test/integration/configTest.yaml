@@ -1,10 +1,13 @@
 
-
+listen: ":8080"
 lb:
-  listen: ":8080"
+
   backends:
     - http://localhost:9001
     - http://localhost:9002
-  rate:
-    capacity: 100
-    rps: 10
+rate:
+  capacity: 100
+  rps: 10
+health:
+  interval: 5s
+  timeout:  2s

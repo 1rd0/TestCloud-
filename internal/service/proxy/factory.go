@@ -1,29 +1,22 @@
 package proxy
 
 import (
-	"github.com/1rd0/TestCloud-/internal/balancer"
 	"net/http"
-	"net/http/httputil"
+
+	"github.com/1rd0/TestCloud-/internal/service/backend"
 )
 
 type Handler struct {
-	bal balancer.Balancer
+	pick func() (*backend.Backend, error)
 }
 
-func New(bal balancer.Balancer) *Handler {
-	return &Handler{bal: bal}
-}
+func New(pick func() (*backend.Backend, error)) *Handler { return &Handler{pick: pick} }
 
 func (h *Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	u, err := h.bal.Next()
+	b, err := h.pick()
 	if err != nil {
 		http.Error(w, "service unavailable", http.StatusServiceUnavailable)
 		return
 	}
-	// Пересобираем request → целится в backend.
-	r.URL.Scheme = u.Scheme
-	r.URL.Host = u.Host
-	r.Host = u.Host
-	// Довершаем проксирование стандартным reverse-proxy’ем.
-	httputil.NewSingleHostReverseProxy(u).ServeHTTP(w, r)
+	b.ServeHTTP(w, r)
 }

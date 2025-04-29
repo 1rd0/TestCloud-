@@ -2,42 +2,52 @@ package config
 
 import (
 	"fmt"
-	"github.com/caarlos0/env/v11"
+	"time"
+
+	"gopkg.in/yaml.v3"
+	"os"
 )
 
-type Config struct { // структура конфио котоырй содержит в себе данные с env  чтобы использовать в проекте
-	DatabaseName     string `env:"DB_NAME"`
-	DatabaseHost     string `env:"DB_HOST"`
-	DatabasePort     string `env:"DB_PORT"`
-	ApiServerPort    string `env:"API_SERVER_PORT"`
-	ApiServerHost    string `env:"API_SERVER_HOST"`
-	DatabasePortTest string `env:"DB_PORT_TEST"`
-	DatabaseUser     string `env:"DB_USER"`
-	DatabasePass     string `env:"DB_PASSWORD"`
-	Environment      Env    `env:"ENV" envDefault:"dev"`
-	ProjectRoot      string `env:"PROJECT_ROOT"`
-	JwtSecret        string `env:"JWT_SECRET"`
+type Config struct {
+	Listen string             `yaml:"listen"`
+	LB     LoadBalancerConfig `yaml:"lb" envPrefix:"LB_"`
+	Rate   Rate               `yaml:"rate"`
+	Health Health             `yaml:"health"`
 }
 
-func New() (*Config, error) {
-	cfg, err := env.ParseAs[Config]()
-	if err != nil {
-		return nil, fmt.Errorf("parse config: %w", err)
-	}
-	return &cfg, nil
+type LoadBalancerConfig struct {
+	Alg      string   `yaml:"Alg"`
+	Backends []string `yaml:"backends" env:"BACKENDS" envSeparator:","`
 }
 
-type Env string
+type Rate struct {
+	Capacity int `yaml:"capacity" env:"CAPACITY"`
+	RPS      int `yaml:"rps" env:"RPS"`
+}
+type Health struct {
+	Interval time.Duration `yaml:"interval"`
+	Timeout  time.Duration `yaml:"timeout"`
+}
 
-const (
-	EnvDev  Env = "dev"
-	EnvTest Env = "test"
-)
-
-func (c *Config) DatabaseURL() string {
-	port := c.DatabasePort
-	if c.Environment == EnvTest {
-		port = c.DatabasePortTest
+func New(path string) (*Config, error) {
+	cfg := &Config{
+		Listen: ":8080",
+		LB:     LoadBalancerConfig{},
+		Rate: Rate{
+			Capacity: 100,
+			RPS:      10,
+		},
 	}
-	return fmt.Sprintf("postgres://%s:%s@%s:%s/%s?sslmode=disable", c.DatabaseUser, c.DatabasePass, c.DatabaseHost, port, c.DatabaseName)
+	if path != "" {
+		data, err := os.ReadFile(path)
+		if err != nil {
+			return nil, fmt.Errorf("failed to read config file: %w", err)
+		}
+
+		if err := yaml.Unmarshal(data, cfg); err != nil {
+			return nil, fmt.Errorf("failed to parse YAML config: %w", err)
+		}
+	}
+
+	return cfg, nil
 }
