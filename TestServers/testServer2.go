@@ -12,7 +12,7 @@ func main() {
 
 	http.HandleFunc("/health", func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusOK)
-		fmt.Fprint(w, "OK")
+		fmt.Fprint(w, "OK 2")
 	})
 
 	fmt.Println("Server 2 starting on :9002")

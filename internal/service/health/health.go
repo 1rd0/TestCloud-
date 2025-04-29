@@ -2,6 +2,7 @@ package health
 
 import (
 	"context"
+	"github.com/1rd0/TestCloud-/internal/service/metrics"
 	"net/http"
 	"net/url"
 	"time"
@@ -30,6 +31,12 @@ func Start(ctx context.Context, backs []*backend.Backend, interval, timeout time
 								zap.Bool("alive", alive))
 						}
 						b.SetAlive(alive)
+						val := float64(0)
+						if alive {
+							val = 1
+						}
+
+						metrics.BackendUp.WithLabelValues(b.URL.String()).Set(val)
 					}(b)
 				}
 			}

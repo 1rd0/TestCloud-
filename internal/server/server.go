@@ -2,6 +2,7 @@ package server
 
 import (
 	"context"
+	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"net/http"
 	"net/url"
 	"strings"
@@ -43,11 +44,13 @@ func Run(ctx context.Context) error {
 	health.Start(ctx, backs, 5*time.Second, 2*time.Second, log)
 
 	// HTTP-handler
-	h := proxy.New(bal.Next)
+	mux := http.NewServeMux()
+	mux.Handle("/metrics", promhttp.Handler())
+	mux.Handle("/", proxy.New(bal.Next))
 
 	srv := &http.Server{
 		Addr:    cfg.Listen, // ":8080"
-		Handler: h,
+		Handler: mux,
 	}
 
 	log.Info("LB listening", zap.String("addr", cfg.Listen))

@@ -6,6 +6,7 @@ lb:
     - localhost:9001
     - localhost:9002
     - localhost:9003
+    - localhost:9004
 rate:
   capacity: 100
   rps: 10
