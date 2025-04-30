@@ -3,6 +3,7 @@ package server
 import (
 	"context"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
+	"log"
 	"net/http"
 	"net/url"
 	"strings"
@@ -17,9 +18,12 @@ import (
 	"go.uber.org/zap"
 )
 
-func Run(ctx context.Context) error {
-	cfg, _ := config.New("config/config.yaml")
+func Run(ctx context.Context, path string) error {
 
+	cfg, err := config.New(path)
+	if err != nil {
+		log.Fatal(err)
+	}
 	log, err := zap.NewProduction()
 	if err != nil {
 		panic(err)
@@ -46,8 +50,11 @@ func Run(ctx context.Context) error {
 	// HTTP-handler
 	mux := http.NewServeMux()
 	mux.Handle("/metrics", promhttp.Handler())
+	mux.HandleFunc("/health", func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(http.StatusOK)
+	})
 	mux.Handle("/", proxy.New(bal.Next))
-
+	mux.HandleFunc("/favicon.ico", http.NotFound)
 	srv := &http.Server{
 		Addr:    cfg.Listen, // ":8080"
 		Handler: mux,
