@@ -10,12 +10,12 @@ import (
 )
 
 func TestHandler_ServeHTTP(t *testing.T) {
-	// Создаем тестовый сервер
+
 	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusOK)
 		w.Write([]byte("ok"))
 	}))
-	defer ts.Close() // Не забываем закрыть сервер
+	defer ts.Close()
 
 	// Преобразуем строку URL в *url.URL
 	backendURL, err := url.Parse(ts.URL)
@@ -23,7 +23,7 @@ func TestHandler_ServeHTTP(t *testing.T) {
 		t.Fatalf("Failed to parse test server URL: %v", err)
 	}
 
-	b := backend.New(backendURL) // Теперь передаем *url.URL, а не строку
+	b := backend.New(backendURL)
 
 	h := New(func() (*backend.Backend, error) {
 		return b, nil
@@ -40,19 +40,18 @@ func TestHandler_ServeHTTP(t *testing.T) {
 }
 
 func BenchmarkHandler_ServeHTTP(b *testing.B) {
-	// Создаем тестовый сервер
+
 	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusOK)
 	}))
-	defer ts.Close() // Не забываем закрыть сервер
+	defer ts.Close()
 
-	// Преобразуем строку URL в *url.URL
 	backendURL, err := url.Parse(ts.URL)
 	if err != nil {
 		b.Fatalf("Failed to parse test server URL: %v", err)
 	}
 
-	bck := backend.New(backendURL) // Теперь передаем *url.URL, а не строку
+	bck := backend.New(backendURL)
 
 	h := New(func() (*backend.Backend, error) {
 		return bck, nil

@@ -12,7 +12,7 @@ type Backend struct {
 	proxy *httputil.ReverseProxy
 
 	alive uint32 // 0 | 1
-	conns int64  // active requests
+	conns int64
 }
 
 func New(u *url.URL) *Backend {

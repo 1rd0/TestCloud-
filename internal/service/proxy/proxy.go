@@ -11,11 +11,15 @@ type Handler struct {
 	pick func() (*backend.Backend, error)
 }
 
-func New(pick func() (*backend.Backend, error)) *Handler { return &Handler{pick: pick} }
+func New(pick func() (*backend.Backend, error)) *Handler {
+	return &Handler{
+		pick: pick,
+	}
+}
 
 func (h *Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	if r.URL.Path == "/metrics" || r.URL.Path == "/health" || r.URL.Path == "/favicon.ico" {
-		http.NotFound(w, r) // или promhttp.Handler() для /metrics
+		http.NotFound(w, r)
 		return
 	}
 	metrics.TotalRequests.Inc()

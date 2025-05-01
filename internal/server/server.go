@@ -68,8 +68,21 @@ func Run(ctx context.Context, path string) error {
 	log.Info("LB listening", zap.String("addr", cfg.Listen))
 	go func() {
 		<-ctx.Done()
-		_ = srv.Shutdown(context.Background())
+		shutdownCtx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+		defer cancel()
+
+		log.Info("Shutting down server...")
+		if err := srv.Shutdown(shutdownCtx); err != nil {
+			log.Error("Server shutdown failed", zap.Error(err))
+		} else {
+			log.Info("Server shutdown completed")
+		}
+
 	}()
 
-	return srv.ListenAndServe()
+	err = srv.ListenAndServe()
+	if err != nil && err != http.ErrServerClosed {
+		return err
+	}
+	return nil
 }

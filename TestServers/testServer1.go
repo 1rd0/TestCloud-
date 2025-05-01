@@ -2,7 +2,6 @@ package main
 
 import (
 	"fmt"
-	"log"
 	"net/http"
 )
 
@@ -11,7 +10,7 @@ func main() {
 	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
 		fmt.Fprint(w, "Backend 1 response")
 		w.WriteHeader(http.StatusOK)
-		log.Print("1")
+
 	})
 
 	http.HandleFunc("/health", func(w http.ResponseWriter, r *http.Request) {
