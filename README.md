@@ -96,20 +96,28 @@ db:
   max_conns: 20
 ```
 ## Метрики
+Тестирование с API-ключом:
 ```bash
 ab -n 250 -c 50 -H "X-API-Key: me" http://localhost:8040/
 ```
--Complete requests:250
--Failed requests:43
+
+Complete requests: 250
+
+Failed requests: 43
+
 ![Скриншот](screen/me.png)
 ```bash
 ab -n 250 -c 50 http://localhost:8040/
 ```
 -Complete requests:250
+
 -Failed requests:147
+
 ![Скриншот2](screen/def.png)
 
-#№Prometheus
+##Prometheus
+
+![Скриншот3](screen/Pro,etheus.png)
 
 ##Результат
-
+![GIF](screen/work.gif)
