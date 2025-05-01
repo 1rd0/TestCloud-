@@ -20,10 +20,10 @@ make migrate_up
 git clone https://github.com/yourname/TestCloud.git
 make upDocker
 make migrate_up
- 
+ ```
 
 
-
+ ```bash
 internal/
   service/
     backend/    # Реализация backend и reverse proxy
@@ -37,3 +37,4 @@ pkg/
   gp/           # Работа с БД (pgx pool)
   logger/          # Конфигурация zap-логгера
   metrics/      # Prometheus метрики
+ ```
