@@ -9,8 +9,8 @@
 - [Структура проекта](#-структура-проекта)
 - [Конфигурация](#-конфигурация)
 - [Метрики](#-метрики)
-- [Rate Limiting (Token Bucket)](#-rate-limiting-token-bucket)
-- [Результаты тестов](#-результаты-тестов)
+- [Prometheus](#-Prometheus)
+- [Результат](#-результат)
 - [🐳 Dockerfile и docker-compose](#-dockerfile-и-docker-compose)
 
 
@@ -96,7 +96,20 @@ db:
   max_conns: 20
 ```
 ## Метрики
-
+```bash
 ab -n 250 -c 50 -H "X-API-Key: me" http://localhost:8040/
+```
+-Complete requests:250
+-Failed requests:43
 ![Скриншот](screen/me.png)
+```bash
 ab -n 250 -c 50 http://localhost:8040/
+```
+-Complete requests:250
+-Failed requests:147
+![Скриншот2](screen/def.png)
+
+#№Prometheus
+
+##Результат
+
