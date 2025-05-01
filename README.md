@@ -29,3 +29,4 @@ internal/
   server/       # HTTP сервер + инициализация
 pkg/
   gp/           # Работа с БД (pgx pool)
+  metrics/      # метрики 
