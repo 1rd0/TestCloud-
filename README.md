@@ -7,15 +7,21 @@
 - Конфигурацию через YAML
 - Интеграцию с **Prometheus**
 - Подключение к базе данных Postgres для хранения лимитов
-
+- Docker-развёртыванием и миграциями
 Быстрый старт
 
 ### 1. Склонируйте проект
 [Смотреть демонстрацию на YouTube](https://www.youtube.com/watch?v=dQw4w9WgXcQ)
 
-```bash
+ ```bash
 git clone https://github.com/yourname/TestCloud.git
-cd TestCloud
+make upDocker
+make migrate_up
+git clone https://github.com/yourname/TestCloud.git
+make upDocker
+make migrate_up
+ ```
+
 
 
 internal/
@@ -29,4 +35,5 @@ internal/
   server/       # HTTP сервер + инициализация
 pkg/
   gp/           # Работа с БД (pgx pool)
-  metrics/      # метрики 
+  logger/          # Конфигурация zap-логгера
+  metrics/      # Prometheus метрики
