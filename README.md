@@ -115,9 +115,9 @@ ab -n 250 -c 50 http://localhost:8040/
 
 ![Скриншот2](screen/def.png)
 
-##Prometheus
+## Prometheus
 
-![Скриншот3](screen/Pro,etheus.png)
+![Скриншот3](screen/Prometheus.png)
 
-##Результат
+## Результат
 ![GIF](screen/work.gif)
