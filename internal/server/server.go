@@ -45,8 +45,8 @@ func Run(ctx context.Context, path string) error {
 	}
 	rateLimiterm, err := limiter.NewLimiter(ctx, pool)
 	// choose algorithm
-	var bal balancer.Balancer
-	bal = balancer.NewRR(backs)
+
+	bal := balancer.NewRR(backs)
 
 	// health-check
 	health.Start(ctx, backs, 5*time.Second, 2*time.Second, log)

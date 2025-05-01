@@ -1,7 +1,6 @@
-package integration
+package config
 
 import (
-	"github.com/1rd0/TestCloud-/config"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"os"
@@ -11,7 +10,7 @@ import (
 
 func TestNewConfig_Defaults(t *testing.T) {
 	t.Run("Should return default values", func(t *testing.T) {
-		cfg, err := config.New("")
+		cfg, err := New("")
 		require.NoError(t, err)
 
 		assert.Equal(t, ":8080", cfg.Listen)
@@ -26,7 +25,7 @@ func TestNewConfig_FromYAML(t *testing.T) {
 	t.Run("Should load config from YAML file", func(t *testing.T) {
 		// Получаем абсолютный путь к тестовому файлу
 
-		cfg, err := config.New("configTest.yaml")
+		cfg, err := New("configTest.yaml")
 		require.NoError(t, err)
 
 		assert.Equal(t, ":8080", cfg.Listen)
@@ -45,7 +44,7 @@ func TestNewConfig_FromYAML(t *testing.T) {
 		require.NoError(t, err)
 		tmpFile.Close()
 
-		_, err = config.New(tmpFile.Name())
+		_, err = New(tmpFile.Name())
 		assert.Error(t, err)
 	})
 }

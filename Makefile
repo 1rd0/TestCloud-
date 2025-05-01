@@ -1,5 +1,5 @@
 upDocker:
-	docker compose up
+	docker compose up --build
 migrate_create:
 	migrate create -ext sql -dir  migration/ init
 migrate_up:
