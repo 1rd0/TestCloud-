@@ -11,6 +11,7 @@
 Быстрый старт
 
 ### 1. Склонируйте проект
+[Смотреть демонстрацию на YouTube](https://www.youtube.com/watch?v=dQw4w9WgXcQ)
 
 ```bash
 git clone https://github.com/yourname/TestCloud.git
