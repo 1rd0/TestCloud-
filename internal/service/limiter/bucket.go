@@ -1,35 +1,43 @@
 package limiter
 
 import (
+	"errors"
 	"sync"
 	"time"
 )
 
-type bucket struct {
-	tokens  int64 // текущее количество
-	cap     int64 // ёмкость
-	rate    int64 // токенов в секунду
-	updated time.Time
-	mu      sync.Mutex
+type Bucket struct {
+	capacity     int
+	tokens       float64
+	refillPerSec float64
+	last         time.Time
+	mu           sync.Mutex
 }
 
-func newBucket(cap, rate int64) *bucket { return nil }
+func NewBucket(capacity int, refillPerSec float64) *Bucket {
+	return &Bucket{
+		capacity:     capacity,
+		tokens:       float64(capacity),
+		refillPerSec: refillPerSec,
+		last:         time.Now(),
+	}
+}
 
-func (b *bucket) allow() bool {
+func (b *Bucket) TryTake() error {
 	b.mu.Lock()
 	defer b.mu.Unlock()
 
 	now := time.Now()
-	elapsed := now.Sub(b.updated)
-	b.updated = now
-	// пополняем
-	add := (elapsed.Nanoseconds() * b.rate) / int64(time.Second)
-	if add > 0 {
-		b.tokens = min(b.cap, b.tokens+add)
+	delta := now.Sub(b.last).Seconds() * b.refillPerSec
+	b.tokens += delta
+	if b.tokens > float64(b.capacity) {
+		b.tokens = float64(b.capacity)
 	}
-	if b.tokens == 0 {
-		return false
+	b.last = now
+
+	if b.tokens >= 1 {
+		b.tokens -= 1
+		return nil
 	}
-	b.tokens--
-	return true
+	return errors.New("rate limit exceeded")
 }

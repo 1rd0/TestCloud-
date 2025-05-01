@@ -14,7 +14,12 @@ type Handler struct {
 func New(pick func() (*backend.Backend, error)) *Handler { return &Handler{pick: pick} }
 
 func (h *Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+	if r.URL.Path == "/metrics" || r.URL.Path == "/health" || r.URL.Path == "/favicon.ico" {
+		http.NotFound(w, r) // или promhttp.Handler() для /metrics
+		return
+	}
 	metrics.TotalRequests.Inc()
+
 	b, err := h.pick()
 	if err != nil {
 		http.Error(w, "service unavailable", http.StatusServiceUnavailable)

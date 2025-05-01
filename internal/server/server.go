@@ -2,6 +2,8 @@ package server
 
 import (
 	"context"
+	"github.com/1rd0/TestCloud-/internal/service/limiter"
+	"github.com/1rd0/TestCloud-/pkg/gp"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"log"
 	"net/http"
@@ -39,7 +41,11 @@ func Run(ctx context.Context, path string) error {
 		}
 		backs = append(backs, backend.New(u))
 	}
+	pool, err := gp.NewPoolConn(ctx, cfg.DB.URL())
+	if err != nil {
 
+	}
+	rateLimiterm, err := limiter.NewLimiter(ctx, pool)
 	// choose algorithm
 	var bal balancer.Balancer
 	bal = balancer.NewRR(backs)
@@ -53,8 +59,10 @@ func Run(ctx context.Context, path string) error {
 	mux.HandleFunc("/health", func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusOK)
 	})
-	mux.Handle("/", proxy.New(bal.Next))
+
 	mux.HandleFunc("/favicon.ico", http.NotFound)
+	apiHandler := proxy.New(bal.Next)
+	mux.Handle("/", rateLimiterm.Middleware(apiHandler))
 	srv := &http.Server{
 		Addr:    cfg.Listen, // ":8080"
 		Handler: mux,

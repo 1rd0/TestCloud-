@@ -3,13 +3,27 @@ listen: ":8040"
 lb:
   Alg:
   backends:
-    - localhost:9001
     - localhost:9002
-    - localhost:9003
+    - localhost:9001
     - localhost:9004
+    - localhost:9003
+    - app1:9001
+    - app2:9002
+    - app3:9003
+    - app4:9004
+    - app5:9005
 rate:
   capacity: 100
   rps: 10
 health:
   interval: 5s
   timeout:  2s
+
+db:
+  host: "postgres"
+  port: 5432
+  user: "user"
+  pass: "secret"
+  name: "postgres_db "
+  min_conns: 5
+  max_conns: 20
