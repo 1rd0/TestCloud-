@@ -2,7 +2,7 @@ package health
 
 import (
 	"context"
-	"github.com/1rd0/TestCloud-/internal/service/metrics"
+	"github.com/1rd0/TestCloud-/pkg/metrics"
 	"net/http"
 	"net/url"
 	"time"

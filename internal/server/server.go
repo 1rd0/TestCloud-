@@ -2,33 +2,31 @@ package server
 
 import (
 	"context"
-	"github.com/1rd0/TestCloud-/internal/service/limiter"
-	"github.com/1rd0/TestCloud-/pkg/gp"
-	"github.com/prometheus/client_golang/prometheus/promhttp"
-	"log"
-	"net/http"
-	"net/url"
-	"strings"
-	"time"
-
 	"github.com/1rd0/TestCloud-/config"
 	"github.com/1rd0/TestCloud-/internal/service/backend"
 	"github.com/1rd0/TestCloud-/internal/service/balancer"
 	"github.com/1rd0/TestCloud-/internal/service/health"
+	"github.com/1rd0/TestCloud-/internal/service/limiter"
 	"github.com/1rd0/TestCloud-/internal/service/proxy"
-
+	"github.com/1rd0/TestCloud-/pkg/gp"
+	"github.com/1rd0/TestCloud-/pkg/logger"
+	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"go.uber.org/zap"
+	"net/http"
+	"net/url"
+	"strings"
+	"time"
 )
 
 func Run(ctx context.Context, path string) error {
 
 	cfg, err := config.New(path)
 	if err != nil {
-		log.Fatal(err)
+		return err
 	}
-	log, err := zap.NewProduction()
+	log, err := logger.New()
 	if err != nil {
-		panic(err)
+		return err
 	}
 	backs := make([]*backend.Backend, 0, len(cfg.LB.Backends))
 	for _, raw := range cfg.LB.Backends {
@@ -43,7 +41,7 @@ func Run(ctx context.Context, path string) error {
 	}
 	pool, err := gp.NewPoolConn(ctx, cfg.DB.URL())
 	if err != nil {
-
+		return err
 	}
 	rateLimiterm, err := limiter.NewLimiter(ctx, pool)
 	// choose algorithm
@@ -60,16 +58,18 @@ func Run(ctx context.Context, path string) error {
 		w.WriteHeader(http.StatusOK)
 	})
 
-	mux.HandleFunc("/favicon.ico", http.NotFound)
 	apiHandler := proxy.New(bal.Next)
 	mux.Handle("/", rateLimiterm.Middleware(apiHandler))
 	srv := &http.Server{
-		Addr:    cfg.Listen, // ":8080"
+		Addr:    cfg.Listen, // ":8040"
 		Handler: mux,
 	}
 
 	log.Info("LB listening", zap.String("addr", cfg.Listen))
-	go func() { <-ctx.Done(); _ = srv.Shutdown(context.Background()) }()
+	go func() {
+		<-ctx.Done()
+		_ = srv.Shutdown(context.Background())
+	}()
 
 	return srv.ListenAndServe()
 }
