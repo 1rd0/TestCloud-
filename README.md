@@ -98,4 +98,5 @@ db:
 ## Метрики
 
 ab -n 250 -c 50 -H "X-API-Key: me" http://localhost:8040/
+![Скриншот](screen/me.png)
 ab -n 250 -c 50 http://localhost:8040/
